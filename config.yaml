@@ -1,0 +1,18 @@
+database:
+  url: "sqlite:///./auction.db"
+
+features:
+  enable_csv_upload: true
+  enable_excel_upload: true
+
+auction:
+  default_bid_duration_seconds: 40
+  bid_extension_seconds: 20
+  minimum_increment: 100000
+  auctioneer_extension_seconds: 20
+  ending_countdown_seconds: 5
+
+security:
+  auctioneer_key: "supersecret"
+
+  #zenstardb#12

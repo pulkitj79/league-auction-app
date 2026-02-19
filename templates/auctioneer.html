@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auctioneer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/auction.css">
+</head>
+<body class="bg-gray-800 text-white p-8">
+
+<div id="login-section">
+    <h1 class="text-2xl mb-4">Auctioneer Login</h1>
+    <input id="secret-key" placeholder="Secret Key" class="text-black p-2 mr-2">
+    <button id="login-btn" class="bg-blue-600 px-4 py-2">Login</button>
+</div>
+
+<div id="auction-section" class="hidden">
+    <h1 class="text-3xl mb-6">Auction Control Panel</h1>
+
+    <div class="mb-6">
+        <div>Player: <span id="player-name"></span></div>
+        <div>Highest Bid: ₹<span id="highest-bid"></span></div>
+        <div>Leading Team: <span id="highest-team"></span></div>
+        <div>Timer: <span id="timer"></span></div>
+    </div>
+
+    <div class="space-x-4">
+        <button id="load-btn" class="bg-purple-600 px-4 py-2">Load Next Player</button>
+        <button id="start-btn" class="bg-green-600 px-4 py-2">Start Bidding</button>
+        <button id="countdown-btn" class="bg-yellow-600 px-4 py-2">Start Countdown</button>
+        <button id="cancel-btn" class="bg-blue-600 px-4 py-2">Cancel Countdown</button>
+        <button id="extend-btn" class="bg-indigo-600 px-4 py-2">Extend</button>
+        <button id="close-btn" class="bg-red-600 px-4 py-2">Force Close</button>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    const token = localStorage.getItem("auctioneer_token");
+
+    if (token) {
+        document.getElementById("login-section").classList.add("hidden");
+        document.getElementById("auction-section").classList.remove("hidden");
+    }
+
+    document.getElementById("login-btn").addEventListener("click", async function() {
+        const secret = document.getElementById("secret-key").value;
+
+        const response = await fetch(`/api/auth/login/auctioneer?secret_key=${secret}`, {
+            method: "POST"
+        });
+
+        const data = await response.json();
+
+        if (data.access_token) {
+            localStorage.setItem("auctioneer_token", data.access_token);
+            location.reload();
+        } else {
+            alert("Login failed");
+        }
+    });
+
+    function apiCall(url) {
+        const token = localStorage.getItem("auctioneer_token");
+        return fetch(url, {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+    }
+
+    document.getElementById("load-btn").addEventListener("click", () => apiCall("/api/auction/load-next"));
+    document.getElementById("start-btn").addEventListener("click", () => apiCall("/api/auction/start"));
+    document.getElementById("countdown-btn").addEventListener("click", () => apiCall("/api/auction/start-countdown"));
+    document.getElementById("cancel-btn").addEventListener("click", () => apiCall("/api/auction/cancel-countdown"));
+    document.getElementById("extend-btn").addEventListener("click", () => apiCall("/api/auction/extend"));
+    document.getElementById("close-btn").addEventListener("click", () => apiCall("/api/auction/force-close"));
+
+});
+</script>
+
+<script src="/static/js/auction-engine.js"></script>
+
+</body>
+</html>

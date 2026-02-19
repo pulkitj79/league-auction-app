@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bidder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/auction.css">
+</head>
+<body class="bg-gray-900 text-white p-8">
+
+<div id="login-section">
+    <h1 class="text-2xl mb-4">Bidder Login</h1>
+    <input id="team-name" placeholder="Team Name" class="text-black p-2 mr-2">
+    <input id="team-pin" type="password" placeholder="PIN" class="text-black p-2 mr-2">
+    <button id="login-btn" class="bg-blue-600 px-4 py-2">Login</button>
+</div>
+
+<div id="auction-section" class="hidden">
+    <h1 class="text-3xl mb-4">Live Auction</h1>
+
+    <div class="mb-4">
+        <div>Player: <span id="player-name"></span></div>
+        <div>Highest Bid: ₹<span id="highest-bid"></span></div>
+        <div>Leading Team: <span id="highest-team"></span></div>
+        <div>Timer: <span id="timer"></span></div>
+    </div>
+
+    <div>
+        <input id="bid-amount" placeholder="Enter Bid Amount" class="text-black p-2 mr-2">
+        <button id="bid-btn" class="bg-green-600 px-4 py-2">Place Bid</button>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    const token = localStorage.getItem("auction_token");
+
+    if (token) {
+        document.getElementById("login-section").classList.add("hidden");
+        document.getElementById("auction-section").classList.remove("hidden");
+    }
+
+    document.getElementById("login-btn").addEventListener("click", async function() {
+        const teamName = document.getElementById("team-name").value;
+        const pin = document.getElementById("team-pin").value;
+
+        const response = await fetch(`/api/auth/login/bidder?team_name=${teamName}&pin=${pin}`, {
+            method: "POST"
+        });
+
+        const data = await response.json();
+
+        if (data.access_token) {
+            localStorage.setItem("auction_token", data.access_token);
+            location.reload();
+        } else {
+            alert("Login failed");
+        }
+    });
+
+    document.getElementById("bid-btn").addEventListener("click", async function() {
+        const amount = document.getElementById("bid-amount").value;
+        const token = localStorage.getItem("auction_token");
+
+        const response = await fetch(`/api/auction/bid?amount=${amount}`, {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        if (!response.ok) {
+            alert("Bid failed");
+        }
+    });
+
+});
+</script>
+
+<script src="/static/js/auction-engine.js"></script>
+
+</body>
+</html>

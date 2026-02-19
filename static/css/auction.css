@@ -1,0 +1,10 @@
+.leader-highlight {
+    color: #facc15;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+#timer {
+    font-size: 24px;
+    font-weight: bold;
+}
