@@ -31,3 +31,13 @@ class AuctionConfig(Base):
     # UI configuration
     allow_manual_input = Column(Boolean, default=True)
     number_of_increment_buttons = Column(Integer, default=0)
+
+     # 🔥 New rule-driven engine config
+    
+    rule_config = Column(JSON, nullable=False, default=dict)
+    rule_config={
+        "increment": {
+            "mode": "FIXED_MULTI",
+            "values": [2, 3]
+        }
+    }

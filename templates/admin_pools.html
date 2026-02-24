@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - Pools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+
+<h1 class="text-3xl mb-6">Manage Pools</h1>
+
+<table class="w-full mb-6 border">
+    <thead>
+        <tr class="bg-gray-700">
+            <th class="p-2">ID</th>
+            <th class="p-2">Name</th>
+            <th class="p-2">Sequence</th>
+            <th class="p-2">Active</th>
+            <th class="p-2">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pool in pools %}
+        <tr class="border-t">
+            <td class="p-2">{{ pool.id }}</td>
+            <td class="p-2">{{ pool.name }}</td>
+            <td class="p-2">{{ pool.sequence_order }}</td>
+            <td class="p-2">{{ pool.is_active }}</td>
+            <td class="p-2">
+                <button class="toggle-btn bg-yellow-600 px-2 py-1"
+                        data-id="{{ pool.id }}">
+                    Toggle
+                </button>
+
+                <button class="delete-btn bg-red-600 px-2 py-1"
+                        data-id="{{ pool.id }}">
+                    Delete
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2 class="text-xl mb-2">Add Pool</h2>
+
+<input id="pool-name" placeholder="Name" class="text-black p-2 mr-2">
+<input id="pool-seq" placeholder="Sequence Order" type="number" class="text-black p-2 mr-2">
+
+<button onclick="createPool()" class="bg-green-600 px-4 py-2">
+    Create
+</button>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", async function () {
+            const id = this.getAttribute("data-id");
+            const token =
+                sessionStorage.getItem("auctioneer_token") ||
+                localStorage.getItem("auctioneer_token");
+
+            await fetch("/api/admin/pools/" + id, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+
+            location.reload();
+        });
+    });
+
+    document.querySelectorAll(".toggle-btn").forEach(btn => {
+        btn.addEventListener("click", async function () {
+            const id = this.getAttribute("data-id");
+            const token =
+                sessionStorage.getItem("auctioneer_token") ||
+                localStorage.getItem("auctioneer_token");
+
+            await fetch("/api/admin/pools/" + id + "/toggle", {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+
+            location.reload();
+        });
+    });
+
+});
+
+async function createPool() {
+    const name = document.getElementById("pool-name").value;
+    const seq = document.getElementById("pool-seq").value;
+
+    const token =
+        sessionStorage.getItem("auctioneer_token") ||
+        localStorage.getItem("auctioneer_token");
+
+    const url = "/api/admin/pools?name="
+        + encodeURIComponent(name)
+        + "&sequence_order="
+        + encodeURIComponent(seq);
+
+    await fetch(url, {
+        method: "POST",
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    });
+
+    location.reload();
+}
+</script>
+
+</body>
+</html>

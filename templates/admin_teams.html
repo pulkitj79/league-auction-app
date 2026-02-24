@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - Teams</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+
+<h1 class="text-3xl mb-6">Manage Teams</h1>
+
+<table class="w-full mb-6 border">
+    <thead>
+        <tr class="bg-gray-700">
+            <th class="p-2">ID</th>
+            <th class="p-2">Name</th>
+            <th class="p-2">Budget</th>
+            <th class="p-2">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for team in teams %}
+        <tr class="border-t">
+            <td class="p-2">{{ team.id }}</td>
+            <td class="p-2">{{ team.name }}</td>
+            <td class="p-2">{{ team.budget_remaining }}</td>
+            <td class="p-2">
+                <button 
+                    class="delete-btn bg-red-600 px-2 py-1"
+                    data-id="{{ team.id }}">
+                    Delete
+                </button>
+
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2 class="text-xl mb-2">Add Team</h2>
+
+<input id="team-name" placeholder="Team Name" class="text-black p-2 mr-2">
+<input id="team-budget" placeholder="Budget" type="number" class="text-black p-2 mr-2">
+<input id="team-pin" placeholder="PIN" class="text-black p-2 mr-2">
+<input id="team-color" placeholder="Color (optional)" class="text-black p-2 mr-2">
+
+<button onclick="createTeam()" class="bg-green-600 px-4 py-2">
+    Create
+</button>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", async function () {
+            const id = this.getAttribute("data-id");
+            const token = sessionStorage.getItem("auctioneer_token");
+
+
+            await fetch("/api/admin/teams/" + id, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+
+            location.reload();
+        });
+    });
+
+});
+
+async function createTeam() {
+    const name = document.getElementById("team-name").value;
+    const budget = document.getElementById("team-budget").value;
+    const pin = document.getElementById("team-pin").value;
+    const color = document.getElementById("team-color").value;
+
+    const token = sessionStorage.getItem("auctioneer_token") 
+        || localStorage.getItem("auctioneer_token");
+
+    const url = "/api/admin/teams?name="
+        + encodeURIComponent(name)
+        + "&budget="
+        + encodeURIComponent(budget)
+        + "&pin="
+        + encodeURIComponent(pin)
+        + "&color="
+        + encodeURIComponent(color);
+
+    await fetch(url, {
+        method: "POST",
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    });
+
+    location.reload();
+}
+
+</script>
+
+
+
+</body>
+</html>

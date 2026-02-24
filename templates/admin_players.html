@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - Players</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+
+<h1 class="text-3xl mb-6">Manage Players</h1>
+
+<table class="w-full mb-6 border">
+    <thead>
+        <tr class="bg-gray-700">
+            <th class="p-2">ID</th>
+            <th class="p-2">Name</th>
+            <th class="p-2">Base Price</th>
+            <th class="p-2">Pool</th>
+            <th class="p-2">Status</th>
+            <th class="p-2">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for player in players %}
+        <tr class="border-t">
+            <td class="p-2">{{ player.id }}</td>
+            <td class="p-2">{{ player.name }}</td>
+            <td class="p-2">{{ player.base_price }}</td>
+            <td class="p-2">
+                {% if player.pool_id %}
+                    {{ player.pool_id }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            <td class="p-2">{{ player.status }}</td>
+            <td class="p-2">
+                {% if player.status == "AVAILABLE" %}
+                <button class="delete-btn bg-red-600 px-2 py-1"
+                        data-id="{{ player.id }}">
+                    Delete
+                </button>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2 class="text-xl mb-2">Add Player</h2>
+
+<input id="player-name" placeholder="Name" class="text-black p-2 mr-2">
+<input id="player-base" placeholder="Base Price" type="number" class="text-black p-2 mr-2">
+
+<select id="player-pool" class="text-black p-2 mr-2">
+    <option value="">No Pool</option>
+    {% for pool in pools %}
+    <option value="{{ pool.id }}">{{ pool.name }}</option>
+    {% endfor %}
+</select>
+
+<button onclick="createPlayer()" class="bg-green-600 px-4 py-2">
+    Create
+</button>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", async function () {
+            const id = this.getAttribute("data-id");
+            const token =
+                sessionStorage.getItem("auctioneer_token") ||
+                localStorage.getItem("auctioneer_token");
+
+            await fetch("/api/admin/players/" + id, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+
+            location.reload();
+        });
+    });
+
+});
+
+async function createPlayer() {
+    const name = document.getElementById("player-name").value;
+    const base = document.getElementById("player-base").value;
+    const pool = document.getElementById("player-pool").value;
+
+    const token =
+        sessionStorage.getItem("auctioneer_token") ||
+        localStorage.getItem("auctioneer_token");
+
+    let url = "/api/admin/players?name="
+        + encodeURIComponent(name)
+        + "&base_price="
+        + encodeURIComponent(base);
+
+    if (pool) {
+        url += "&pool_id=" + encodeURIComponent(pool);
+    }
+
+    await fetch(url, {
+        method: "POST",
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    });
+
+    location.reload();
+}
+</script>
+
+</body>
+</html>

@@ -16,6 +16,7 @@
 
 <div id="auction-section" class="hidden">
     <h1 class="text-3xl mb-4">Live Auction</h1>
+    <button id="logout-btn" class="mb-4 bg-gray-700 px-3 py-1">Logout</button>
 
     <div class="mb-4">
         <div>Player: <span id="player-name"></span></div>
@@ -33,7 +34,7 @@
 <script>
 document.addEventListener("DOMContentLoaded", function() {
 
-    const token = localStorage.getItem("auction_token");
+    const token = sessionStorage.getItem("auction_token");
 
     if (token) {
         document.getElementById("login-section").classList.add("hidden");
@@ -51,16 +52,21 @@ document.addEventListener("DOMContentLoaded", function() {
         const data = await response.json();
 
         if (data.access_token) {
-            localStorage.setItem("auction_token", data.access_token);
+            sessionStorage.setItem("auction_token", data.access_token);
             location.reload();
         } else {
             alert("Login failed");
         }
     });
 
+    document.getElementById("logout-btn").addEventListener("click", function() {
+        sessionStorage.removeItem("auction_token");
+        location.reload();
+    });
+
     document.getElementById("bid-btn").addEventListener("click", async function() {
         const amount = document.getElementById("bid-amount").value;
-        const token = localStorage.getItem("auction_token");
+        const token = sessionStorage.getItem("auction_token");
 
         const response = await fetch(`/api/auction/bid?amount=${amount}`, {
             method: "POST",

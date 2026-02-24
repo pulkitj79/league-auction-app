@@ -8,9 +8,11 @@ from app.models.player import Player
 from app.models.team import Team
 from app.models.pool import Pool
 from app.models.auction_state import AuctionState
+from app.models.auction_config import AuctionConfig
 from app.websocket.manager import manager
 from app.core.constants import AuctionEvent, AuctionStatus, Defaults
 from app.core.settings import settings
+from app.services.bid_rule_engine import BidRuleEngine
 
 
 _countdown_task: Optional[asyncio.Task] = None
@@ -37,6 +39,12 @@ class AuctionService:
             self.db.commit()
             self.db.refresh(state)
         return state
+
+    def _get_config(self) -> AuctionConfig:
+        config = self.db.query(AuctionConfig).first()
+        if not config:
+            raise Exception("AuctionConfig not initialized")
+        return config
 
     # ------------------------------------------------
     # Pool-based next player selection
@@ -134,7 +142,7 @@ class AuctionService:
         return {"status": "bidding_started"}
 
     # ------------------------------------------------
-    # PLACE BID
+    # PLACE BID (NOW CONFIG DRIVEN)
     # ------------------------------------------------
     async def place_bid(self, team_id: int, amount: float):
 
@@ -168,11 +176,23 @@ class AuctionService:
         except Exception:
             raise Exception("Invalid amount")
 
-        if amount_val <= (state.current_highest_bid or 0):
-            raise Exception("Bid too low")
+        config = self._get_config()
+        rule_engine = BidRuleEngine(config)
 
-        if amount_val > team.budget_remaining:
-            raise Exception("Insufficient budget")
+        print("DEBUG RULE CONFIG:", config.rule_config)
+
+        players_owned = (
+            self.db.query(Player)
+            .filter(Player.sold_to_team == team.id)
+            .count()
+        )
+
+        rule_engine.validate_bid(
+            current_highest_bid=state.current_highest_bid or 0,
+            new_amount=amount_val,
+            team_budget_remaining=team.budget_remaining,
+            players_owned=players_owned
+        )
 
         state.current_highest_bid = amount_val
         state.current_highest_team_id = team.id

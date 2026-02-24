@@ -15,6 +15,7 @@
 
 <div id="auction-section" class="hidden">
     <h1 class="text-3xl mb-6">Auction Control Panel</h1>
+    <button id="logout-btn" class="mb-4 bg-gray-700 px-3 py-1">Logout</button>
 
     <div class="mb-6">
         <div>Player: <span id="player-name"></span></div>
@@ -36,7 +37,7 @@
 <script>
 document.addEventListener("DOMContentLoaded", function() {
 
-    const token = localStorage.getItem("auctioneer_token");
+    const token = sessionStorage.getItem("auctioneer_token");
 
     if (token) {
         document.getElementById("login-section").classList.add("hidden");
@@ -53,15 +54,20 @@ document.addEventListener("DOMContentLoaded", function() {
         const data = await response.json();
 
         if (data.access_token) {
-            localStorage.setItem("auctioneer_token", data.access_token);
+            sessionStorage.setItem("auctioneer_token", data.access_token);
             location.reload();
         } else {
             alert("Login failed");
         }
     });
 
+    document.getElementById("logout-btn").addEventListener("click", function() {
+        sessionStorage.removeItem("auctioneer_token");
+        location.reload();
+    });
+
     function apiCall(url) {
-        const token = localStorage.getItem("auctioneer_token");
+        const token = sessionStorage.getItem("auctioneer_token");
         return fetch(url, {
             method: "POST",
             headers: {

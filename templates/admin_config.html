@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - Auction Config</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+
+<h1 class="text-3xl mb-6">Auction Configuration</h1>
+
+<div class="space-y-4">
+
+<label>Purse Type</label>
+<select id="purse-type" class="text-black p-2">
+    <option value="CURRENCY" {% if config.purse_type == "CURRENCY" %}selected{% endif %}>Currency</option>
+    <option value="POINTS" {% if config.purse_type == "POINTS" %}selected{% endif %}>Points</option>
+</select>
+
+<label>Initial Purse Value</label>
+<input id="initial-purse" type="number" class="text-black p-2"
+       value="{{ config.initial_purse_value }}">
+
+<label>Increment Mode</label>
+<select id="increment-mode" class="text-black p-2">
+    <option value="FIXED" {% if config.increment_mode == "FIXED" %}selected{% endif %}>Fixed</option>
+    <option value="TIER" {% if config.increment_mode == "TIER" %}selected{% endif %}>Tier</option>
+    <option value="OPEN" {% if config.increment_mode == "OPEN" %}selected{% endif %}>Open</option>
+</select>
+
+<label>Fixed Increment Value</label>
+<input id="fixed-increment" type="number" class="text-black p-2"
+       value="{{ config.fixed_increment_value }}">
+
+<label>Tier Rules (JSON)</label>
+<textarea id="tier-rules" class="text-black p-2 w-full h-32">
+{{ config.tier_rules }}
+</textarea>
+
+<label>Number of Increment Buttons</label>
+<input id="button-count" type="number" class="text-black p-2"
+       value="{{ config.number_of_increment_buttons }}">
+
+<label>
+<input type="checkbox" id="auto-reset"
+    {% if config.auto_reset_on_new_bid %}checked{% endif %}>
+Auto Reset Countdown On New Bid
+</label>
+
+<label>
+<input type="checkbox" id="allow-manual"
+    {% if config.allow_manual_input %}checked{% endif %}>
+Allow Manual Bid Input
+</label>
+
+<button onclick="saveConfig()" class="bg-green-600 px-4 py-2 mt-4">
+Save
+</button>
+
+</div>
+
+<script>
+async function saveConfig() {
+
+    const token =
+        sessionStorage.getItem("auctioneer_token") ||
+        localStorage.getItem("auctioneer_token");
+
+    const url = "/api/admin/config?"
+        + "purse_type=" + encodeURIComponent(document.getElementById("purse-type").value)
+        + "&initial_purse_value=" + encodeURIComponent(document.getElementById("initial-purse").value)
+        + "&increment_mode=" + encodeURIComponent(document.getElementById("increment-mode").value)
+        + "&fixed_increment_value=" + encodeURIComponent(document.getElementById("fixed-increment").value)
+        + "&tier_rules=" + encodeURIComponent(document.getElementById("tier-rules").value)
+        + "&number_of_increment_buttons=" + encodeURIComponent(document.getElementById("button-count").value)
+        + "&auto_reset_on_new_bid=" + document.getElementById("auto-reset").checked
+        + "&allow_manual_input=" + document.getElementById("allow-manual").checked;
+
+    await fetch(url, {
+        method: "POST",
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    });
+
+    alert("Saved");
+}
+</script>
+
+</body>
+</html>

@@ -7,6 +7,8 @@ from app.models.player import Player
 from app.models.team import Team
 from app.models.auction_state import AuctionState
 from app.models.pool import Pool
+from app.engine.increment_engine import IncrementEngine
+from app.services.config_service import ConfigService
 
 from app.core.dependencies import require_role, get_current_session
 from app.core.constants import UserRole
@@ -179,3 +181,18 @@ def full_state(db: Session = Depends(get_db)):
         "available_count": len(available_players),
         "leaderboard": leaderboard
     }
+
+
+@router.get("/debug/allowed-bids")
+def debug_allowed_bids(
+    current_bid: float,
+    team_budget_remaining: float,
+    db: Session = Depends(get_db)
+):
+    config = ConfigService(db).get()
+    result = IncrementEngine.calculate(
+        current_bid,
+        team_budget_remaining,
+        config.rule_config
+    )
+    return result
